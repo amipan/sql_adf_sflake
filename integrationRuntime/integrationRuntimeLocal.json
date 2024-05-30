@@ -1,0 +1,7 @@
+{
+	"name": "integrationRuntimeLocal",
+	"properties": {
+		"type": "SelfHosted",
+		"description": "This is my local Intergration runtime"
+	}
+}

@@ -1,0 +1,90 @@
+{
+	"name": "ADLS2_to_SFlake_1table",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup Get LIst of Tables",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "Select TABLE_SCHEMA , TABLE_NAME From INFORMATION_SCHEMA.Tables Where TABLE_TYPE = 'Base Table'",
+						"queryTimeout": "00:30:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServer_Employee",
+						"type": "DatasetReference",
+						"parameters": {
+							"Schema_Name": "HumanResources",
+							"Table_Name": "Employee"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Get LIst of Tables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Get LIst of Tables').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Script_ExecSFlake_Qry",
+							"type": "Script",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "Sflake_Datartic",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "Use Schema Migration;\nCREATE or Replace TABLE MigrationDB.Migration.@{item().Table_Name}\n  USING TEMPLATE (\n    SELECT ARRAY_AGG(OBJECT_CONSTRUCT(*))\n      FROM TABLE(\n        INFER_SCHEMA(\n          LOCATION=>'@{concat('@migration_stage/Migration_Data/', item().TABLE_SCHEMA, '_', item().Table_Name, '.csv')}',\n          FILE_FORMAT=>'MIGREATION_FORMAT'\n        )\n      ));",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2024-05-30T04:04:56Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

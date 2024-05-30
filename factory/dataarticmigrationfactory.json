@@ -1,0 +1,9 @@
+{
+	"name": "dataarticmigrationfactory",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "d0fef170-329e-44b9-a1ac-7466d780f37a",
+		"tenantId": "4163898d-566a-4f99-bc9e-ba50d69db573"
+	}
+}
